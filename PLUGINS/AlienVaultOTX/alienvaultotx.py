@@ -1,3 +1,5 @@
+import re
+
 import requests
 
 from PLUGINS.AlienVaultOTX.CONFIG import API_KEY, HTTP_PROXY
@@ -12,6 +14,35 @@ class AlienVaultOTX(object):
 
     def __init__(self):
         pass
+
+    @classmethod
+    def query(cls, indicator: str) -> dict:
+        indicator = indicator.strip()
+
+        ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+        if re.match(ipv4_pattern, indicator):
+            parts = indicator.split('.')
+            if all(0 <= int(part) <= 255 for part in parts):
+                result = cls.query_ip(indicator)
+                result['indicator_type'] = 'ip'
+                return result
+
+        if re.match(r'^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$', indicator):
+            result = cls.query_file(indicator)
+            result['indicator_type'] = 'file'
+            return result
+
+        url_pattern = r'^(https?://|ftp://|www\.)'
+        domain_pattern = r'\.'
+        if re.match(url_pattern, indicator, re.IGNORECASE) or (re.search(domain_pattern, indicator) and '/' in indicator):
+            result = cls.query_url(indicator)
+            result['indicator_type'] = 'url'
+            return result
+
+        return {
+            "error": "Unable to determine indicator type. Please provide a valid IP address, URL, or file hash.",
+            "input": indicator
+        }
 
     @classmethod
     def query_ip(cls, ip: str) -> dict:

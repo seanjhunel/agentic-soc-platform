@@ -1,4 +1,5 @@
-from typing import List
+import json
+from typing import List, Dict, Any
 
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph
@@ -7,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from Lib.baseplaybook import LanggraphPlaybook
 from Lib.llmapi import BaseAgentState
+from PLUGINS.AlienVaultOTX.alienvaultotx import AlienVaultOTX
 from PLUGINS.LLM.llmapi import LLMAPI
 from PLUGINS.SIEM.models import KeywordSearchInput, KeywordSearchOutput
 from PLUGINS.SIEM.tools import SIEMToolKit
@@ -28,91 +30,122 @@ class AlertExtraction(BaseModel):
 
 
 class AgentState(BaseAgentState):
+    keywords: List[SearchKeyword] = []
+    start_time: str = ""
+    end_time: str = ""
     logs: List[KeywordSearchOutput] = []
+    threat_intel_data: Dict[str, Any] = {}
     summary_ai: str = ""
 
 
 class Playbook(LanggraphPlaybook):
-    TYPE = "ALERT"  # Classification tag
-    NAME = "Alert Summary Agent"  # PlaybookLoader name
+    TYPE = "ALERT"
+    NAME = "Alert Summary Agent"
 
     def __init__(self):
-        super().__init__()  # do not delete this code
+        super().__init__()
         self.init()
 
     def init(self):
         def preprocess_node(state: AgentState):
-            """Preprocess data"""
             alert = Alert.get(self.param_source_rowid)
             return {"alert": alert}
 
-        # Define node
-        def analyze_node(state: AgentState):
-            """AI analyzes alert data"""
+        def extract_keywords_node(state: AgentState):
             alert: AlertModel = state.alert
-            # Load system prompt
             system_prompt_template = self.load_system_prompt_template("extract_agent_system")
-
             system_message = system_prompt_template.format()
 
-            # Run
             llm_api = LLMAPI()
+            llm = llm_api.get_model(tag="fast").with_structured_output(AlertExtraction)
 
-            llm = llm_api.get_model(tag="fast")
-
-            # Construct message list
-            messages = [
-                system_message,
-                HumanMessage(content=alert.model_dump_json())
-            ]
-            llm = llm.with_structured_output(AlertExtraction)
+            messages = [system_message, HumanMessage(content=alert.model_dump_json())]
             alert_extraction: AlertExtraction = llm.invoke(messages)
-            start_time = alert_extraction.start_time
-            end_time = alert_extraction.end_time
+
+            return {
+                "keywords": alert_extraction.keywords,
+                "start_time": alert_extraction.start_time,
+                "end_time": alert_extraction.end_time
+            }
+
+        def query_threat_intel_node(state: AgentState):
+            threat_intel_data = {}
+            for keyword in state.keywords:
+                if keyword.is_ioc:
+                    try:
+                        result = AlienVaultOTX.query(keyword.keyword)
+                        threat_intel_data[keyword.keyword] = result
+                    except Exception as e:
+                        self.logger.warning(f"AlienVaultOTX query failed for {keyword.keyword}: {str(e)}")
+                        continue
+            return {"threat_intel_data": threat_intel_data}
+
+        def search_siem_logs_node(state: AgentState):
             logs: List[KeywordSearchOutput] = []
+            for keyword in state.keywords:
+                try:
+                    results = SIEMToolKit.keyword_search(
+                        KeywordSearchInput(
+                            keyword=keyword.keyword,
+                            time_range_start=state.start_time,
+                            time_range_end=state.end_time
+                        )
+                    )
+                    logs.extend(results)
+                except Exception as e:
+                    self.logger.warning(f"SIEM search failed for {keyword.keyword}: {str(e)}")
+                    continue
 
-            for keyword in alert_extraction.keywords:
-                results = SIEMToolKit.keyword_search(
-                    KeywordSearchInput(keyword=keyword.keyword, time_range_start=start_time, time_range_end=end_time))
-                logs.extend(results)
+            return {"logs": logs}
 
-            # summany
-            llm = llm_api.get_model(tag="fast")
-            human_message = self.load_human_prompt_template("summary_agent_human").format(
+        def generate_summary_node(state: AgentState):
+            alert: AlertModel = state.alert
+            system_prompt_template = self.load_system_prompt_template("summary_agent_system")
+            system_message = system_prompt_template.format()
+
+            ti_summary = json.dumps(state.threat_intel_data, ensure_ascii=False,
+                                    indent=2) if state.threat_intel_data else "No threat intelligence data available."
+            logs_summary = [log.model_dump_json() for log in state.logs] if state.logs else []
+
+            human_template = self.load_human_prompt_template("summary_agent_human")
+            human_message = HumanMessage(content=human_template.format(
                 alert_data=alert.model_dump_json(),
-                threat_intel=None,
-                siem_logs=[log.model_dump_json() for log in logs]
-            )
+                threat_intel=ti_summary,
+                siem_logs=logs_summary
+            ))
 
-            messages = [
-                system_message,
-                human_message
-            ]
+            llm_api = LLMAPI()
+            llm = llm_api.get_model(tag="fast")
 
+            messages = [system_message, human_message]
             response = llm.invoke(messages)
 
             return {"summary_ai": response.content}
 
         def output_node(state: AgentState):
-            """Process analysis results"""
             summary_ai = state.summary_ai
             model = AlertModel(rowid=self.param_source_rowid, summary_ai=summary_ai)
             Alert.update(model)
             self.agent_state = state
             return state
 
-        # Compile graph
         workflow = StateGraph(AgentState)
 
         workflow.add_node("preprocess_node", preprocess_node)
-        workflow.add_node("analyze_node", analyze_node)
+        workflow.add_node("extract_keywords_node", extract_keywords_node)
+        workflow.add_node("query_threat_intel_node", query_threat_intel_node)
+        workflow.add_node("search_siem_logs_node", search_siem_logs_node)
+        workflow.add_node("generate_summary_node", generate_summary_node)
         workflow.add_node("output_node", output_node)
 
         workflow.set_entry_point("preprocess_node")
-        workflow.add_edge("preprocess_node", "analyze_node")
-        workflow.add_edge("analyze_node", "output_node")
+        workflow.add_edge("preprocess_node", "extract_keywords_node")
+        workflow.add_edge("extract_keywords_node", "query_threat_intel_node")
+        workflow.add_edge("query_threat_intel_node", "search_siem_logs_node")
+        workflow.add_edge("search_siem_logs_node", "generate_summary_node")
+        workflow.add_edge("generate_summary_node", "output_node")
         workflow.set_finish_point("output_node")
-        model = AlertModel()
+
         self.agent_state = AgentState()
         self.graph: CompiledStateGraph = workflow.compile(checkpointer=self.get_checkpointer())
         return True
