@@ -14,7 +14,13 @@ if __name__ == "__main__":
     import django
 
     django.setup()
-    from PLUGINS.MCP.llmfunc import get_case_by_rowid
+    from PLUGINS.MCP.llmfunc import (
+        get_case_by_rowid,
+        get_case_by_case_id,
+        list_cases,
+        create_case,
+        update_case
+    )
 
     # Define UUID file path
     uuid_file_path = os.path.join(BASE_DIR, "Docker", "mcp_uuid")
@@ -40,5 +46,9 @@ if __name__ == "__main__":
 
     # add tools
     mcp.add_tool(get_case_by_rowid)
+    mcp.add_tool(get_case_by_case_id)
+    mcp.add_tool(list_cases)
+    mcp.add_tool(create_case)
+    mcp.add_tool(update_case)
     print(f"mcp server url: http://your_server_ip:{port}/{uuid_str}/sse")
     mcp.run(transport="sse")
