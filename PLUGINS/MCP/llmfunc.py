@@ -20,7 +20,7 @@ def list_cases(
         status: Annotated[Optional[list[CaseStatus]], "Filter by case status or a list of case statuses"] = None,
         severity: Annotated[Optional[list[Severity]], "Filter by severity level or a list of severity levels"] = None,
         limit: Annotated[int, "Maximum number of results to return"] = 10
-) -> Annotated[list[dict], "Security cases matching the filters"]:
+) -> Annotated[list[str], "Security cases matching the filters"]:
     """List security cases with optional filters."""
     conditions = []
 

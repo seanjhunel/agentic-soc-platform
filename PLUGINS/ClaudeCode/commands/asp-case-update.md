@@ -14,22 +14,26 @@ Update case {{case_id}} with the following changes:
 
 **Valid values:**
 
-- Severity: Critical, High, Medium, Low, Info
-- Status: New, InProgress, Closed, FalsePositive
+- Severity: Informational, Low, Medium, High, Critical, Fatal, Unknown, Other
+- Status: New, In Progress, On Hold, Resolved, Closed
 
 Use the MCP tool `update_case` with the case ID and any provided update fields.
+
+The tool returns the updated case row ID, or `None` if the case does not exist.
+
+If the tool returns `None`, clearly state that the case was not found.
 
 After successful update, display:
 
 **Case Updated Successfully**
 
-Show before/after comparison for changed fields, then display complete updated case details:
+Show the fields that were requested to change, then display:
 
+- Rowid
 - Case ID
 - Title
 - Severity
 - Status
 - Description
-- Updated timestamp
 
-Highlight what changed and confirm the update was applied successfully.
+If full updated details are needed, call `get_case` after the update and present the latest case data.

@@ -9,36 +9,47 @@ Query case details for: {{id}}
 
 Use the MCP tool `get_case` with the provided parameters.
 
+The tool returns an AI-friendly JSON string. Parse it before presenting the result.
+
+If the tool returns `None`, clearly state that the case was not found.
+
 Format the output with:
 
 **Case Overview**
 
-- Case ID and Title
-- Severity and Status
+- Case ID
+- Title
+- Severity
+- Status
 - Description
+- Confidence
+- Priority
+- Category
 - Created/Updated timestamps
 
 **Associated Alerts**
 
 - Total count
-- Summary of key alerts
-- Alert types and sources
+- For each key alert, show title, severity, status, source UID, correlation UID, first seen time, and last seen time when available
 
 **Associated Artifacts**
 
 - Total count
-- Key entities (IPs, domains, hashes, users)
-- Artifact types
+- For each key artifact, show name, value, type, role, and reputation score when available
 
 **Timeline**
 
-- Event sequence
-- Key timestamps
+- Created time
+- Acknowledged time
+- Closed time
+- Start/end time if available
 
 **AI Analysis**
 
-- Any automated analysis results
-- Confidence scores
-- Recommendations
+- Analysis rationale
+- Recommended actions
+- Attack stage
+- AI severity and AI confidence
+- Threat hunting report
 
 Present the information in a clear, structured format with appropriate sections.

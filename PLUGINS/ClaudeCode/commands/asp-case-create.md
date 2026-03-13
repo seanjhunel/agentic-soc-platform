@@ -14,21 +14,21 @@ Create a new security case with:
 
 **Valid values:**
 
-- Severity: Critical, High, Medium, Low, Info
-- Status: New, InProgress, Closed, FalsePositive
+- Severity: Informational, Low, Medium, High, Critical, Fatal, Unknown, Other
+- Status: New, In Progress, On Hold, Resolved, Closed
 
 Use the MCP tool `create_case` with the provided parameters.
+
+The tool returns the created case row ID.
 
 After successful creation, display:
 
 **Case Created Successfully**
 
-- Case ID: [assigned ID]
 - Rowid: [database rowid]
 - Title: [title]
 - Severity: [severity]
 - Status: [status]
 - Description: [description]
-- Created: [timestamp]
 
-Provide a confirmation message and suggest next steps (e.g., adding alerts, artifacts, or starting investigation).
+If the user needs full case details, suggest querying the case separately after creation.
