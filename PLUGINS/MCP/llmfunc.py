@@ -63,9 +63,9 @@ def update_case(
         severity_ai: Annotated[Optional[str], "New AI-assessed severity"] = None,
         confidence_ai: Annotated[Optional[str], "New AI-assessed confidence"] = None,
         comment_ai: Annotated[Optional[
-            str], "New AI-comment. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None,
+            str], "New AI-comment. Supports Markdown format."] = None,
         summary_ai: Annotated[Optional[
-            str], "New AI-summary. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None
+            str], "New AI-summary. Supports Markdown format."] = None
 ) -> Annotated[Optional[str], "Row ID of the updated case, or None if the case does not exist"]:
     """Update an existing security case_old."""
     case_old = Case.get_by_id(case_id, lazy_load=True)

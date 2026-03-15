@@ -17,7 +17,7 @@ if __name__ == "__main__":
     from PLUGINS.MCP.llmfunc import (
         get_case,
         list_cases,
-        create_case,
+        # create_case,
         update_case
     )
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # add tools
     mcp.add_tool(get_case)
     mcp.add_tool(list_cases)
-    mcp.add_tool(create_case)
+    # mcp.add_tool(create_case)
     mcp.add_tool(update_case)
     print(f"mcp server url: http://your_server_ip:{port}/{uuid_str}/sse")
     mcp.run(transport="sse")
