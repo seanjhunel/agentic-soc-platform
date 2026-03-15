@@ -31,4 +31,4 @@ After successful creation, display:
 - Status: [status]
 - Description: [description]
 
-If the user needs full case details, suggest querying the case separately after creation.
+If the user needs full case details, suggest querying the case separately by case ID after creation.

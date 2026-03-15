@@ -15,6 +15,8 @@ Use the MCP tool `list_cases` with the provided parameters.
 
 The `status` and `severity` filters support lists. If multiple values are provided, pass them as arrays to the MCP tool.
 
+When filter values contain spaces, keep the value intact when parsing user input.
+
 **Valid filter values:**
 
 - Status: New, In Progress, On Hold, Resolved, Closed
@@ -25,9 +27,9 @@ The tool returns a list of AI-friendly JSON strings. Parse each item before rend
 
 Display results in a table format and include as many useful fields as are available:
 
-| Case ID | Title | Severity | Status | Priority | Confidence | Category | Correlation UID | Created | Updated |
-|---------|-------|----------|--------|----------|------------|----------|-----------------|---------|---------|
-| ...     | ...   | ...      | ...    | ...      | ...        | ...      | ...             | ...     | ...     |
+| Case ID | Title | Severity | Status | Verdict | Priority | Confidence | Category | Correlation UID | Created | Updated |
+|---------|-------|----------|--------|---------|----------|------------|----------|-----------------|---------|---------|
+| ...     | ...   | ...      | ...    | ...     | ...      | ...        | ...      | ...             | ...     | ...     |
 
 After the table, only provide the total count of cases returned.
 

@@ -63,19 +63,14 @@ def update_case(
         severity_ai: Annotated[Optional[str], "New AI-assessed severity"] = None,
         confidence_ai: Annotated[Optional[str], "New AI-assessed confidence"] = None,
         comment_ai: Annotated[Optional[
-            str], "Append content to comment_ai. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None,
+            str], "New AI-comment. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None,
         summary_ai: Annotated[Optional[
-            str], "Append content to summary_ai. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None
-) -> Annotated[Optional[str], "Row ID of the updated case_old, or None if the case_old does not exist"]:
+            str], "New AI-summary. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None
+) -> Annotated[Optional[str], "Row ID of the updated case, or None if the case does not exist"]:
     """Update an existing security case_old."""
     case_old = Case.get_by_id(case_id, lazy_load=True)
     if not case_old:
         return None
-
-    def append_text(existing: Optional[str], new_content: str) -> str:
-        if existing:
-            return f"{existing.rstrip()}\n\n{new_content.lstrip()}"
-        return new_content
 
     case_new = CaseModel()
     case_new.rowid = case_old.rowid
@@ -91,9 +86,9 @@ def update_case(
         case_new.confidence_ai = Confidence(confidence_ai)
 
     if comment_ai:
-        case_new.comment_ai = append_text(case_old.comment_ai, comment_ai)
+        case_new.comment_ai = comment_ai
     if summary_ai:
-        case_new.summary_ai = append_text(case_old.summary_ai, summary_ai)
+        case_new.summary_ai = summary_ai
 
     return Case.update(case_new)
 

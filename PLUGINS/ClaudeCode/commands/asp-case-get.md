@@ -25,6 +25,8 @@ Format the output with:
 - Confidence
 - Priority
 - Category
+- Verdict
+- Correlation UID
 - Created/Updated timestamps
 
 **Associated Alerts**
@@ -43,13 +45,5 @@ Format the output with:
 - Acknowledged time
 - Closed time
 - Start/end time if available
-
-**AI Analysis**
-
-- Analysis rationale
-- Recommended actions
-- Attack stage
-- AI severity and AI confidence
-- Threat hunting report
 
 Present the information in a clear, structured format with appropriate sections.
