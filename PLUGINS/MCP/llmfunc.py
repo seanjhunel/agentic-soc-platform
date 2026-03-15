@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 
 from PLUGINS.SIRP.nocolymodel import Group, Condition, Operator
 from PLUGINS.SIRP.sirpapi import Case
-from PLUGINS.SIRP.sirpmodel import CaseModel, Severity, CaseStatus
+from PLUGINS.SIRP.sirpmodel import CaseModel, Severity, CaseStatus, CaseVerdict, Confidence
 
 
 def get_case(
@@ -57,26 +57,45 @@ def create_case(
 
 def update_case(
         case_id: Annotated[str, "Case ID to update"],
-        title: Annotated[Optional[str], "New title"] = None,
         severity: Annotated[Optional[str], "New severity"] = None,
         status: Annotated[Optional[str], "New status"] = None,
-        description: Annotated[Optional[str], "New description"] = None
-) -> Annotated[Optional[str], "Row ID of the updated case, or None if the case does not exist"]:
-    """Update an existing security case."""
-    case = Case.get_by_id(case_id)
-    if not case:
+        verdict: Annotated[Optional[str], "New verdict"] = None,
+        severity_ai: Annotated[Optional[str], "New AI-assessed severity"] = None,
+        confidence_ai: Annotated[Optional[str], "New AI-assessed confidence"] = None,
+        comment_ai: Annotated[Optional[
+            str], "Append content to comment_ai. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None,
+        summary_ai: Annotated[Optional[
+            str], "Append content to summary_ai. Supports Markdown format. For readability, avoid #, ##, ### headings and use #### as the top-level heading."] = None
+) -> Annotated[Optional[str], "Row ID of the updated case_old, or None if the case_old does not exist"]:
+    """Update an existing security case_old."""
+    case_old = Case.get_by_id(case_id, lazy_load=True)
+    if not case_old:
         return None
 
-    if title:
-        case.title = title
-    if severity:
-        case.severity = Severity(severity)
-    if status:
-        case.status = CaseStatus(status)
-    if description:
-        case.description = description
+    def append_text(existing: Optional[str], new_content: str) -> str:
+        if existing:
+            return f"{existing.rstrip()}\n\n{new_content.lstrip()}"
+        return new_content
 
-    return Case.update(case)
+    case_new = CaseModel()
+    case_new.rowid = case_old.rowid
+    if severity:
+        case_new.severity = Severity(severity)
+    if status:
+        case_new.status = CaseStatus(status)
+    if verdict:
+        case_new.verdict = CaseVerdict(verdict)
+    if severity_ai:
+        case_new.severity_ai = Severity(severity_ai)
+    if confidence_ai:
+        case_new.confidence_ai = Confidence(confidence_ai)
+
+    if comment_ai:
+        case_new.comment_ai = append_text(case_old.comment_ai, comment_ai)
+    if summary_ai:
+        case_new.summary_ai = append_text(case_old.summary_ai, summary_ai)
+
+    return Case.update(case_new)
 
 
 if __name__ == "__main__":
@@ -86,6 +105,19 @@ if __name__ == "__main__":
     import django
 
     django.setup()
-    # result = get_case("case_000005")
-    result = list_cases(status=[CaseStatus.IN_PROGRESS])
+    cases = list_cases(limit=1)
+    print(cases)
+    if cases:
+        case = Case.list(Group(logic="AND", children=[]), lazy_load=True)[0]
+        result = update_case(
+            case_id=case.id,
+            status=CaseStatus.IN_PROGRESS,
+            verdict=CaseVerdict.SUSPICIOUS,
+            severity_ai=Severity.HIGH,
+            confidence_ai=Confidence.MEDIUM,
+            comment_ai="#### AI Comment\n\nAdditional investigation notes.",
+            summary_ai="#### AI Summary\n\nUpdated case summary."
+        )
+    else:
+        result = None
     print(result)
