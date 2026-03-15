@@ -9,7 +9,7 @@ def get_case(
         case_id: Annotated[str, "Case ID, for example case_000005"]
 ) -> Annotated[Optional[str], "AI-friendly JSON string of the case, or None if the case does not exist"]:
     """Retrieve a security case by case ID."""
-    model = Case.get_by_case_id(case_id)
+    model = Case.get_by_id(case_id)
     if not model:
         return None
     result = model.model_dump_json_for_ai()
@@ -63,7 +63,7 @@ def update_case(
         description: Annotated[Optional[str], "New description"] = None
 ) -> Annotated[Optional[str], "Row ID of the updated case, or None if the case does not exist"]:
     """Update an existing security case."""
-    case = Case.get_by_case_id(case_id)
+    case = Case.get_by_id(case_id)
     if not case:
         return None
 

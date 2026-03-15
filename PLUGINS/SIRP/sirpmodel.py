@@ -577,7 +577,7 @@ class ArtifactModel(BaseSystemModel):
 
 
 class AlertModel(BaseSystemModel):
-    ai_exclude_fields: ClassVar[set[str]] = {'ownerid', 'caid', 'uaid', "summary_ai", "case"}
+    ai_exclude_fields: ClassVar[set[str]] = {'ownerid', 'caid', 'uaid', "comment_ai", "case", "attachments"}
     id: Optional[str] = Field(default=None)
     severity: Optional[Severity] = Field(default=None,
                                          description="告警的严重性，由源安全产品定义")
@@ -644,7 +644,7 @@ class AlertModel(BaseSystemModel):
     attachments: Optional[Union[List[AttachmentModel], str]] = Field(default=[], description="告警的附件")
 
     # AI字段
-    summary_ai: Optional[str] = Field(default="", description="AI提供的汇总摘要")
+    comment_ai: Optional[str] = Field(default="", description="AI提供的评论")
 
     # 反向关联
     case: Optional[List[Union[CaseModel, str]]] = Field(default=None, description="此告警关联到的安全事件（Case）(只保留rowid,避免循环引用)")
@@ -661,7 +661,7 @@ class AlertModel(BaseSystemModel):
 
 
 class CaseModel(BaseSystemModel):
-    ai_exclude_fields: ClassVar[set[str]] = {'ownerid', 'caid', 'uaid', "workbook", "analysis_rationale_ai", "recommended_actions_ai", "attack_stage_ai",
+    ai_exclude_fields: ClassVar[set[str]] = {'ownerid', 'caid', 'uaid', "workbook", "summary_ai", "comment_ai", "attack_stage_ai",
                                              "severity_ai", "confidence_ai",
                                              "threat_hunting_report_ai"}
     id: Optional[str] = Field(default=None)
@@ -697,13 +697,12 @@ class CaseModel(BaseSystemModel):
     workbook: Optional[str] = Field(default="", description="事件调查使用的工作簿或调查手册内容")
 
     # ai 字段
-    analysis_rationale_ai: Optional[str] = Field(default="", description="AI对事件的分析基本原理和逻辑")
-    recommended_actions_ai: Optional[str] = Field(default="", description="AI推荐的下一步操作或修复建议")
     attack_stage_ai: Optional[str] = Field(default="", description="AI评估的攻击阶段")
     severity_ai: Optional[Severity] = Field(default=None,
                                             description="AI评估的事件严重性")
     confidence_ai: Optional[Confidence] = Field(default=None, description="AI评估的事件置信度")
-
+    comment_ai: Optional[str] = Field(default="", description="AI提供的评论")
+    summary_ai: Optional[str] = Field(default="", description="事件关闭时AI生成的最终摘要总结")
     threat_hunting_report_ai: Optional[str] = Field(default="", description="AI生成的与此事件相关的威胁狩猎报告")
 
     # 公式计算字段
