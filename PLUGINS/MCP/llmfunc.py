@@ -81,7 +81,7 @@ def update_case(
 
 
 def siem_keyword_search(
-        keyword: Annotated[str, "Search keyword. Can be IP address, hostname, username, or any string to search across all fields"],
+        keyword: Annotated[str | list[str], "Search keyword or keyword list. A list uses AND semantics across all provided keywords."],
         time_range_start: Annotated[str, "Start time in UTC ISO8601 format. Example: 2026-02-04T06:00:00Z"],
         time_range_end: Annotated[str, "End time in UTC ISO8601 format. Example: 2026-02-04T07:00:00Z"],
         time_field: Annotated[str, "The field to apply time range filter on"] = "@timestamp",
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     time_range_end = datetime.now(timezone.utc)
     time_range_start = time_range_end - timedelta(minutes=10)
     siem_results = siem_keyword_search(
-        keyword="227.174.159.18",
+        keyword=["227.174.159.18", "CreateAccessKey"],
         time_range_start=time_range_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
         time_range_end=time_range_end.strftime("%Y-%m-%dT%H:%M:%SZ")
     )

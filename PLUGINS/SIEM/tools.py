@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from datetime import datetime, timezone
 from typing import List
@@ -116,12 +117,13 @@ class SIEMToolKit(object):
         """
         Execute keyword-based search across SIEM backends with intelligent response formatting.
 
-        This tool performs full-text search using a keyword across all fields (or specified index):
+        This tool performs full-text search using one keyword or a list of keywords across all fields (or specified index):
         - Supports searching by IP, hostname, username, or any arbitrary string
+        - When a keyword list is provided, all keywords must match in the same search
         - When index_name is not specified, searches BOTH ELK and Splunk backends and returns results from each
         - Applies the same adaptive response strategy as execute_adaptive_query:
-            * Full logs: < 20 results
-            * Sample: 20-1000 results (statistics + samples)
+            * Full logs: < 100 results
+            * Sample: 100-1000 results (statistics + samples)
             * Summary: > 1000 results (statistics only)
         - Provides top-N statistics for specified aggregation fields
         - Handles time range filtering with UTC ISO8601 timestamps
@@ -135,8 +137,15 @@ class SIEMToolKit(object):
             input_data = KeywordSearchInput(
                 keyword="192.168.1.100",
                 time_range_start="2026-02-04T06:00:00Z",
-                time_range_end="2026-02-04T07:00:00Z",
-                aggregation_fields=["event.action", "source.ip"]
+                time_range_end="2026-02-04T07:00:00Z"
+            )
+            result = keyword_search(input_data)
+
+            # Search for multiple terms with AND semantics
+            input_data = KeywordSearchInput(
+                keyword=["alice", "10.10.10.15"],
+                time_range_start="2026-02-04T06:00:00Z",
+                time_range_end="2026-02-04T07:00:00Z"
             )
             result = keyword_search(input_data)
 
@@ -203,6 +212,31 @@ class SIEMToolKit(object):
                 }
             }
         }
+
+    @classmethod
+    def _normalize_keywords(cls, keyword_input: str | list[str]) -> list[str]:
+        if isinstance(keyword_input, str):
+            return [keyword_input]
+        return keyword_input
+
+    @classmethod
+    def _build_elk_keyword_clauses(cls, keyword_input: str | list[str]) -> list[dict]:
+        return [
+            {"multi_match": {"query": keyword, "type": "best_fields", "fuzziness": "AUTO"}}
+            for keyword in cls._normalize_keywords(keyword_input)
+        ]
+
+    @classmethod
+    def _format_splunk_keyword(cls, keyword: str) -> str:
+        if re.fullmatch(r"[A-Za-z0-9._:@/\\-]+", keyword):
+            return keyword
+        escaped_keyword = keyword.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped_keyword}"'
+
+    @classmethod
+    def _build_splunk_keyword_clause(cls, keyword_input: str | list[str]) -> str:
+        keywords = cls._normalize_keywords(keyword_input)
+        return " AND ".join(cls._format_splunk_keyword(keyword) for keyword in keywords)
 
     @classmethod
     def _extract_elk_records(cls, hits: list, include_index: bool = False) -> list[dict]:
@@ -324,7 +358,7 @@ class SIEMToolKit(object):
 
         must_clauses = [
             cls._build_time_range_clause(input_data.time_field, input_data.time_range_start, input_data.time_range_end),
-            {"multi_match": {"query": input_data.keyword, "type": "best_fields", "fuzziness": "AUTO"}}
+            *cls._build_elk_keyword_clauses(input_data.keyword)
         ]
         query_body = {"bool": {"must": must_clauses}}
 
@@ -418,7 +452,8 @@ class SIEMToolKit(object):
         t_start, t_end = cls._parse_time_range(input_data.time_range_start, input_data.time_range_end)
 
         effective_index = input_data.index_name or "*"
-        search_query = f"search index=\"{effective_index}\" {input_data.keyword}"
+        keyword_clause = cls._build_splunk_keyword_clause(input_data.keyword)
+        search_query = f"search index=\"{effective_index}\" ({keyword_clause})"
 
         job = cls._create_and_wait_splunk_job(service, search_query, t_start, t_end)
         total_hits = int(job["eventCount"])
@@ -471,7 +506,7 @@ class SIEMToolKit(object):
 
         must_clauses = [
             cls._build_time_range_clause(input_data.time_field, input_data.time_range_start, input_data.time_range_end),
-            {"multi_match": {"query": input_data.keyword, "type": "best_fields", "fuzziness": "AUTO"}}
+            *cls._build_elk_keyword_clauses(input_data.keyword)
         ]
         query_body = {"bool": {"must": must_clauses}}
         aggs_dsl = {"_index": {"terms": {"field": "_index", "size": 50}}}
@@ -493,7 +528,8 @@ class SIEMToolKit(object):
         t_start, t_end = cls._parse_time_range(input_data.time_range_start, input_data.time_range_end)
 
         index_clause = " OR ".join([f'index="{idx}"' for idx in splunk_indices])
-        search_query = f"search ({index_clause}) {input_data.keyword} | stats count by index"
+        keyword_clause = cls._build_splunk_keyword_clause(input_data.keyword)
+        search_query = f"search ({index_clause}) ({keyword_clause}) | stats count by index"
 
         rr = service.jobs.oneshot(search_query, earliest_time=t_start, latest_time=t_end, output_mode="json")
         reader = JSONResultsReader(rr)

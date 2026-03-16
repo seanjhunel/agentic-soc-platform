@@ -60,6 +60,7 @@ Execute keyword-based full-text search across SIEM backends with intelligent res
 **Usage approach:**
 
 - Use `keyword_search(keyword="search_term")` to search across all available indices in both ELK and Splunk
+- Use `keyword_search(keyword=["term_a", "term_b"])` to require all listed keywords to match in the same search
 - Use `keyword_search(keyword="search_term", index_name="specific_index")` to limit search to a specific index
 - Supports searching by IP addresses, hostnames, usernames, or any arbitrary string
 - Automatically applies the same adaptive response strategy as execute_adaptive_query
@@ -127,14 +128,25 @@ When in doubt, prioritize providing complete log context over aggressive compres
 keyword_search(
   keyword="192.168.1.100",
   time_range_start="2026-02-04T06:00:00Z",
-  time_range_end="2026-02-04T07:00:00Z",
-  aggregation_fields=["event.action", "source.ip", "user.name"]
+  time_range_end="2026-02-04T07:00:00Z"
 )
 ```
 
 → Returns results from all indices in both ELK and Splunk with index distribution
 
-### Example 2: Searching for a Hostname in a Specific Index
+### Example 2: Searching for Multiple Terms with AND Semantics
+
+```
+keyword_search(
+  keyword=["alice", "10.10.10.15"],
+  time_range_start="2026-02-04T06:00:00Z",
+  time_range_end="2026-02-04T07:00:00Z"
+)
+```
+
+→ Returns only events that match every keyword in the list
+
+### Example 3: Searching for a Hostname in a Specific Index
 
 ```
 keyword_search(

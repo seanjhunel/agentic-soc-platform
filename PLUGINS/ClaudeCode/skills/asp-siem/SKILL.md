@@ -102,5 +102,4 @@ Then provide statistics and sample records under each result group.
 2. Collect required parameters for the chosen operation
 3. Execute the appropriate MCP tool
 4. Format and present the results according to the operation's output specification
-5. Handle errors gracefully, such as invalid UTC time format, unsupported index, backend connection issues, or no
-   matching logs
+5. Handle errors gracefully, such as invalid UTC time format, unsupported index, backend connection issues, or no matching logs

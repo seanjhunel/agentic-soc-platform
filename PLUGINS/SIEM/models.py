@@ -76,9 +76,14 @@ class AdaptiveQueryInput(BaseModel):
 
 
 class KeywordSearchInput(BaseModel):
-    keyword: str = Field(
+    keyword: Union[str, List[str]] = Field(
         ...,
-        description="Search keyword. Can be IP address, hostname, username, or any string to search across all fields"
+        description=(
+            "Search keyword or a list of keywords. "
+            "A single string performs a standard full-text search. "
+            "A list performs an AND search, meaning every keyword in the list must match. "
+            "Keywords can be IP addresses, hostnames, usernames, or arbitrary strings."
+        )
     )
 
     time_range_start: str = Field(
@@ -120,6 +125,30 @@ class KeywordSearchInput(BaseModel):
         except ValueError:
             raise ValueError("Invalid format. Must be UTC ISO8601: YYYY-MM-DDTHH:MM:SSZ")
         return v
+
+    @field_validator('keyword')
+    @classmethod
+    def validate_keyword(cls, v):
+        if isinstance(v, str):
+            keyword = v.strip()
+            if not keyword:
+                raise ValueError("keyword must not be empty")
+            return keyword
+
+        if isinstance(v, list):
+            if not v:
+                raise ValueError("keyword list must not be empty")
+            normalized_keywords = []
+            for item in v:
+                if not isinstance(item, str):
+                    raise ValueError("keyword list must contain only strings")
+                keyword = item.strip()
+                if not keyword:
+                    raise ValueError("keyword list must not contain empty values")
+                normalized_keywords.append(keyword)
+            return normalized_keywords
+
+        raise ValueError("keyword must be a string or a list of strings")
 
 
 # --- Output Models ---
