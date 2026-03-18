@@ -523,7 +523,9 @@ class MessageModel(BaseSystemModel):
 
 
 class PlaybookModel(BaseSystemModel):
+    id: Optional[str] = Field(default=None)
     source_rowid: Optional[str] = Field(default="", description="Trigger source row ID")
+    source_id: Optional[str] = Field(default="", description="Trigger source record ID e.g. case_00000_1,alert_000001,artifact_000001")
     type: Optional[PlaybookType] = Field(default=None, description="Linked object type")
     name: Optional[str] = Field(default="", description="Executed playbook name")
     user_input: Optional[str] = Field(default="", description="Initial or follow-up user input")

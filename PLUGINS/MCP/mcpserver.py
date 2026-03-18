@@ -15,7 +15,6 @@ if __name__ == "__main__":
 
     django.setup()
 
-
     # Define UUID file path
     uuid_file_path = os.path.join(BASE_DIR, "Docker", "mcp_uuid")
     # Try to read UUID from file
@@ -37,16 +36,13 @@ if __name__ == "__main__":
 
     mcp.settings.host = host
     mcp.settings.port = port
-    
+
     # add tools
     from PLUGINS.MCP.llmfunc import (
         append_artifact,
         append_enrichment,
         create_ticket,
-        get_alert,
         get_alert_discussions,
-        get_artifact,
-        get_case,
         get_case_discussions,
         list_alerts,
         list_artifacts,
@@ -54,7 +50,6 @@ if __name__ == "__main__":
         list_knowledge,
         list_playbooks,
         list_tickets,
-        query_playbook_runs_by_case,
         update_alert,
         update_case,
         update_knowledge,
@@ -68,10 +63,7 @@ if __name__ == "__main__":
     mcp.add_tool(append_artifact)
     mcp.add_tool(append_enrichment)
     mcp.add_tool(create_ticket)
-    mcp.add_tool(get_alert)
     mcp.add_tool(get_alert_discussions)
-    mcp.add_tool(get_artifact)
-    mcp.add_tool(get_case)
     mcp.add_tool(get_case_discussions)
     mcp.add_tool(list_alerts)
     mcp.add_tool(list_artifacts)
@@ -79,7 +71,6 @@ if __name__ == "__main__":
     mcp.add_tool(list_knowledge)
     mcp.add_tool(list_playbooks)
     mcp.add_tool(list_tickets)
-    mcp.add_tool(query_playbook_runs_by_case)
     mcp.add_tool(update_alert)
     mcp.add_tool(update_case)
     mcp.add_tool(update_knowledge)
@@ -88,6 +79,6 @@ if __name__ == "__main__":
     mcp.add_tool(siem_explore_schema)
     mcp.add_tool(siem_keyword_search)
     mcp.add_tool(get_current_time)
-    
+
     print(f"mcp server url: http://your_server_ip:{port}/{uuid_str}/sse")
     mcp.run(transport="sse")

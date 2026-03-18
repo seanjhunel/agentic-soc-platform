@@ -493,41 +493,6 @@ class Playbook(BaseWorksheetEntity[PlaybookModel]):
         return cls.list(filter_model, lazy_load=True)
 
     @classmethod
-    def list_by_case_id(
-            cls,
-            case_id: str,
-            job_status: Union[List[PlaybookJobStatus], None] = None
-    ) -> Union[List[PlaybookModel], None]:
-        case_model = Case.get_by_id(case_id, lazy_load=True)
-        if not case_model:
-            return None
-
-        conditions = [
-            Condition(
-                field="source_worksheet",
-                operator=Operator.EQ,
-                value="case"
-            ),
-            Condition(
-                field="source_rowid",
-                operator=Operator.EQ,
-                value=case_model.rowid
-            )
-        ]
-
-        if job_status:
-            conditions.append(
-                Condition(
-                    field="job_status",
-                    operator=Operator.IN,
-                    value=job_status
-                )
-            )
-
-        filter_model = Group(logic="AND", children=conditions)
-        return cls.list(filter_model, lazy_load=True)
-
-    @classmethod
     def update_job_status_and_remark(cls, rowid: str, job_status: PlaybookJobStatus, remark: str) -> str:
         """更新 playbook 的 job_status 和 remark 字段
 
@@ -548,7 +513,7 @@ class Playbook(BaseWorksheetEntity[PlaybookModel]):
         return rowid
 
     @classmethod
-    def add_pending_playbook(cls, type: PlaybookType, name, user_input=None, source_rowid=None, record_id=None):
+    def add_pending_playbook(cls, type: PlaybookType, name, user_input=None, source_rowid=None, record_id=None) -> PlaybookModel:
         if source_rowid is None:
             if record_id is None:
                 raise Exception("id is required when source_rowid is None")
@@ -570,7 +535,8 @@ class Playbook(BaseWorksheetEntity[PlaybookModel]):
         model.name = name
         model.user_input = user_input
         rowid = Playbook.create(model)
-        return rowid
+        model_create = Playbook.get(rowid, lazy_load=True)
+        return model_create
 
 
 class Knowledge(BaseWorksheetEntity[KnowledgeModel]):

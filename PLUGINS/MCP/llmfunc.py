@@ -6,22 +6,12 @@ from PLUGINS.SIEM.models import AdaptiveQueryInput, KeywordSearchInput, SchemaEx
 from PLUGINS.SIEM.tools import SIEMToolKit
 from PLUGINS.SIRP.nocolymodel import Group, Condition, Operator
 from PLUGINS.SIRP.sirpapi import Alert, Artifact, Case, Knowledge, Playbook, Ticket
-from PLUGINS.SIRP.sirpmodel import ArtifactReputationScore, ArtifactRole, ArtifactType, AlertStatus, CaseModel, Severity, CaseStatus, CaseVerdict, Confidence, AttackStage, KnowledgeAction, KnowledgeSource, PlaybookJobStatus, PlaybookType, TicketStatus, TicketType
-
-
-def get_case(
-    case_id: Annotated[str, "Case ID, e.g. case_000005"]
-) -> Annotated[Optional[str], "Case as AI-friendly JSON, or None if not found"]:
-    """Get one case by ID."""
-    model = Case.get_by_id(case_id)
-    if not model:
-        return None
-    result = model.model_dump_json_for_ai()
-    return result
+from PLUGINS.SIRP.sirpmodel import ArtifactReputationScore, ArtifactRole, ArtifactType, AlertStatus, CaseModel, Severity, CaseStatus, CaseVerdict, Confidence, \
+    AttackStage, KnowledgeAction, KnowledgeSource, PlaybookJobStatus, PlaybookType, TicketStatus, TicketType
 
 
 def get_case_discussions(
-    case_id: Annotated[str, "Case ID, e.g. case_000005"]
+        case_id: Annotated[str, "Case ID, e.g. case_000005"]
 ) -> Annotated[Optional[list[str]], "Case discussions as JSON list, or None if case not found"]:
     """Get case discussions by case ID."""
     discussions = Case.get_discussions(case_id)
@@ -31,18 +21,20 @@ def get_case_discussions(
 
 
 def list_cases(
-    status: Annotated[Optional[list[CaseStatus]], "Case status filter"] = None,
-    severity: Annotated[Optional[list[Severity]], "Case severity filter"] = None,
-    confidence: Annotated[Optional[list[Confidence]], "Case confidence filter"] = None,
-    verdict: Annotated[Optional[list[CaseVerdict]], "Case verdict filter"] = None,
-    correlation_uid: Annotated[Optional[str], "Case correlation UID filter"] = None,
-    title: Annotated[Optional[str], "Fuzzy case title filter"] = None,
-    tags: Annotated[Optional[list[str]], "Case tag filter"] = None,
-    limit: Annotated[int, "Max cases to return"] = 10
+        case_id: Annotated[str, "Case ID, e.g. case_000005"] = None,
+        status: Annotated[Optional[list[CaseStatus]], "Case status filter"] = None,
+        severity: Annotated[Optional[list[Severity]], "Case severity filter"] = None,
+        confidence: Annotated[Optional[list[Confidence]], "Case confidence filter"] = None,
+        verdict: Annotated[Optional[list[CaseVerdict]], "Case verdict filter"] = None,
+        correlation_uid: Annotated[Optional[str], "Case correlation UID filter"] = None,
+        title: Annotated[Optional[str], "Fuzzy case title filter"] = None,
+        tags: Annotated[Optional[list[str]], "Case tag filter"] = None,
+        limit: Annotated[int, "Max cases to return"] = 10
 ) -> Annotated[list[str], "Matching cases as AI-friendly JSON list"]:
     """List cases with optional filters."""
     conditions = []
-
+    if case_id:
+        conditions.append(Condition(field="id", operator=Operator.EQ, value=case_id))
     if status:
         conditions.append(Condition(field="status", operator=Operator.IN, value=status))
     if severity:
@@ -108,15 +100,18 @@ def update_case(
 
 
 def list_alerts(
-    status: Annotated[Optional[list[AlertStatus]], "Alert status filter"] = None,
-    severity: Annotated[Optional[list[Severity]], "Alert severity filter"] = None,
-    confidence: Annotated[Optional[list[Confidence]], "Alert confidence filter"] = None,
-    correlation_uid: Annotated[Optional[str], "Alert correlation UID filter"] = None,
-    limit: Annotated[int, "Max alerts to return"] = 10
+        alert_id: Annotated[str, "Alert ID, e.g. alert_000001"] = None,
+        status: Annotated[Optional[list[AlertStatus]], "Alert status filter"] = None,
+        severity: Annotated[Optional[list[Severity]], "Alert severity filter"] = None,
+        confidence: Annotated[Optional[list[Confidence]], "Alert confidence filter"] = None,
+        correlation_uid: Annotated[Optional[str], "Alert correlation UID filter"] = None,
+        limit: Annotated[int, "Max alerts to return"] = 10
 ) -> Annotated[list[str], "Matching alerts as AI-friendly JSON list"]:
     """List alerts with optional filters."""
     conditions = []
 
+    if alert_id:
+        conditions.append(Condition(field="id", operator=Operator.EQ, value=alert_id))
     if status:
         conditions.append(Condition(field="status", operator=Operator.IN, value=status))
     if severity:
@@ -135,18 +130,8 @@ def list_alerts(
     return result
 
 
-def get_alert(
-    alert_id: Annotated[str, "Alert ID, e.g. alert_000001"]
-) -> Annotated[Optional[str], "Alert as AI-friendly JSON, or None if not found"]:
-    """Get one alert by ID."""
-    model = Alert.get_by_id(alert_id, lazy_load=False)
-    if not model:
-        return None
-    return model.model_dump_json_for_ai()
-
-
 def get_alert_discussions(
-    alert_id: Annotated[str, "Alert ID, e.g. alert_000001"]
+        alert_id: Annotated[str, "Alert ID, e.g. alert_000001"]
 ) -> Annotated[Optional[list[str]], "Alert discussions as JSON list, or None if alert not found"]:
     """Get alert discussions by alert ID."""
     discussions = Alert.get_discussions(alert_id)
@@ -156,7 +141,7 @@ def get_alert_discussions(
 
 
 def get_artifact(
-    artifact_id: Annotated[str, "Artifact ID, e.g. artifact_000001"]
+        artifact_id: Annotated[str, "Artifact ID, e.g. artifact_000001"]
 ) -> Annotated[Optional[str], "Artifact as AI-friendly JSON, or None if not found"]:
     """Get one artifact by ID."""
     model = Artifact.get_by_id(artifact_id, lazy_load=False)
@@ -166,16 +151,18 @@ def get_artifact(
 
 
 def list_artifacts(
-    type: Annotated[Optional[list[ArtifactType]], "Artifact type filter"] = None,
-    role: Annotated[Optional[list[ArtifactRole]], "Artifact role filter"] = None,
-    reputation_score: Annotated[Optional[list[ArtifactReputationScore]], "Artifact reputation filter"] = None,
-    owner: Annotated[Optional[str], "Artifact owner filter"] = None,
-    value: Annotated[Optional[str], "Exact artifact value filter"] = None,
-    limit: Annotated[int, "Max artifacts to return"] = 10
+        artifact_id: Annotated[str, "Artifact ID, e.g. artifact_000001"] = None,
+        type: Annotated[Optional[list[ArtifactType]], "Artifact type filter"] = None,
+        role: Annotated[Optional[list[ArtifactRole]], "Artifact role filter"] = None,
+        reputation_score: Annotated[Optional[list[ArtifactReputationScore]], "Artifact reputation filter"] = None,
+        owner: Annotated[Optional[str], "Artifact owner filter"] = None,
+        value: Annotated[Optional[str], "Exact artifact value filter"] = None,
+        limit: Annotated[int, "Max artifacts to return"] = 10
 ) -> Annotated[list[str], "Matching artifacts as AI-friendly JSON list"]:
     """List artifacts with optional filters."""
     conditions = []
-
+    if artifact_id:
+        conditions.append(Condition(field="id", operator=Operator.EQ, value=artifact_id))
     if type:
         conditions.append(Condition(field="type", operator=Operator.IN, value=type))
     if role:
@@ -197,10 +184,10 @@ def list_artifacts(
 
 
 def update_alert(
-    alert_id: Annotated[str, "Alert ID to update"],
-    severity_ai: Annotated[Optional[Severity], "Updated AI-assessed severity"] = None,
-    confidence_ai: Annotated[Optional[Confidence], "Updated AI-assessed confidence"] = None,
-    comment_ai: Annotated[Optional[str], "Updated AI comment. Markdown supported"] = None
+        alert_id: Annotated[str, "Alert ID to update"],
+        severity_ai: Annotated[Optional[Severity], "Updated AI-assessed severity"] = None,
+        confidence_ai: Annotated[Optional[Confidence], "Updated AI-assessed confidence"] = None,
+        comment_ai: Annotated[Optional[str], "Updated AI comment. Markdown supported"] = None
 ) -> Annotated[Optional[str], "Updated alert row ID, or None if not found"]:
     """Update selected AI fields on an alert."""
     return Alert.update_ai_fields(
@@ -212,14 +199,14 @@ def update_alert(
 
 
 def append_artifact(
-    alert_id: Annotated[str, "Target alert ID to append the artifact to"],
-    name: Annotated[str, "Artifact name"] = "",
-    type: Annotated[Optional[ArtifactType], "Artifact type"] = None,
-    role: Annotated[Optional[ArtifactRole], "Artifact role in the alert"] = None,
-    owner: Annotated[str, "Artifact owner"] = "",
-    value: Annotated[str, "Artifact value"] = "",
-    reputation_provider: Annotated[str, "Threat intel provider"] = "",
-    reputation_score: Annotated[Optional[ArtifactReputationScore], "Artifact reputation score"] = None
+        alert_id: Annotated[str, "Target alert ID to append the artifact to"],
+        name: Annotated[str, "Artifact name"] = "",
+        type: Annotated[Optional[ArtifactType], "Artifact type"] = None,
+        role: Annotated[Optional[ArtifactRole], "Artifact role in the alert"] = None,
+        owner: Annotated[str, "Artifact owner"] = "",
+        value: Annotated[str, "Artifact value"] = "",
+        reputation_provider: Annotated[str, "Threat intel provider"] = "",
+        reputation_score: Annotated[Optional[ArtifactReputationScore], "Artifact reputation score"] = None
 ) -> Annotated[Optional[str], "Created artifact row ID, or None if alert not found"]:
     """Create one artifact and attach it to an existing alert."""
     return Alert.append_artifact(
@@ -235,15 +222,15 @@ def append_artifact(
 
 
 def append_enrichment(
-    target_type: Annotated[str, "Target object type: case, alert, or artifact"],
-    target_id: Annotated[str, "Target object ID"] ,
-    name: Annotated[str, "Enrichment name"] = "",
-    type: Annotated[str, "Enrichment type"] = "Other",
-    provider: Annotated[str, "Enrichment provider"] = "Other",
-    value: Annotated[str, "Enrichment value"] = "",
-    src_url: Annotated[str, "Enrichment source URL"] = "",
-    desc: Annotated[str, "Enrichment summary"] = "",
-    data: Annotated[str, "Detailed enrichment JSON string"] = ""
+        target_type: Annotated[str, "Target object type: case, alert, or artifact"],
+        target_id: Annotated[str, "Target object ID"],
+        name: Annotated[str, "Enrichment name"] = "",
+        type: Annotated[str, "Enrichment type"] = "Other",
+        provider: Annotated[str, "Enrichment provider"] = "Other",
+        value: Annotated[str, "Enrichment value"] = "",
+        src_url: Annotated[str, "Enrichment source URL"] = "",
+        desc: Annotated[str, "Enrichment summary"] = "",
+        data: Annotated[str, "Detailed enrichment JSON string"] = ""
 ) -> Annotated[Optional[str], "Created enrichment row ID, or None if target not found"]:
     """Create one enrichment and attach it to an existing case, alert, or artifact."""
     normalized_target_type = target_type.strip().lower()
@@ -288,12 +275,12 @@ def append_enrichment(
 
 
 def create_ticket(
-    uid: Annotated[str, "External ticket ID to sync into SIRP"],
-    title: Annotated[str, "Ticket title"] = "",
-    status: Annotated[Optional[TicketStatus], "External ticket status"] = None,
-    type: Annotated[Optional[TicketType], "External ticket type"] = None,
-    src_url: Annotated[str, "External ticket URL"] = "",
-    case_id: Annotated[Optional[str], "Optional case ID to link this ticket to"] = None
+        uid: Annotated[str, "External ticket ID to sync into SIRP"],
+        title: Annotated[str, "Ticket title"] = "",
+        status: Annotated[Optional[TicketStatus], "External ticket status"] = None,
+        type: Annotated[Optional[TicketType], "External ticket type"] = None,
+        src_url: Annotated[str, "External ticket URL"] = "",
+        case_id: Annotated[Optional[str], "Optional case ID to link this ticket to"] = None
 ) -> Annotated[str, "Created ticket row ID"]:
     """Create one synced external ticket record in SIRP."""
     return Ticket.create_from_sync(
@@ -307,12 +294,12 @@ def create_ticket(
 
 
 def update_ticket(
-    ticket_id: Annotated[str, "Ticket ID to update"],
-    uid: Annotated[Optional[str], "Updated external ticket ID"] = None,
-    title: Annotated[Optional[str], "Updated ticket title"] = None,
-    status: Annotated[Optional[TicketStatus], "Updated external ticket status"] = None,
-    type: Annotated[Optional[TicketType], "Updated external ticket type"] = None,
-    src_url: Annotated[Optional[str], "Updated external ticket URL"] = None
+        ticket_id: Annotated[str, "Ticket ID to update"],
+        uid: Annotated[Optional[str], "Updated external ticket ID"] = None,
+        title: Annotated[Optional[str], "Updated ticket title"] = None,
+        status: Annotated[Optional[TicketStatus], "Updated external ticket status"] = None,
+        type: Annotated[Optional[TicketType], "Updated external ticket type"] = None,
+        src_url: Annotated[Optional[str], "Updated external ticket URL"] = None
 ) -> Annotated[Optional[str], "Updated ticket row ID, or None if not found"]:
     """Update one synced external ticket record in SIRP."""
     return Ticket.update_from_sync(
@@ -326,10 +313,10 @@ def update_ticket(
 
 
 def list_tickets(
-    status: Annotated[Optional[list[TicketStatus]], "Ticket status filter"] = None,
-    type: Annotated[Optional[list[TicketType]], "Ticket type filter"] = None,
-    uid: Annotated[Optional[str], "Exact external ticket ID filter"] = None,
-    limit: Annotated[int, "Max tickets to return"] = 10
+        status: Annotated[Optional[list[TicketStatus]], "Ticket status filter"] = None,
+        type: Annotated[Optional[list[TicketType]], "Ticket type filter"] = None,
+        uid: Annotated[Optional[str], "Exact external ticket ID filter"] = None,
+        limit: Annotated[int, "Max tickets to return"] = 10
 ) -> Annotated[list[str], "Matching tickets as AI-friendly JSON list"]:
     """List synced external tickets with optional filters."""
     conditions = []
@@ -351,21 +338,24 @@ def list_tickets(
 
 
 def list_playbooks(
-    job_status: Annotated[Optional[list[PlaybookJobStatus]], "Playbook job status filter"] = None,
-    type: Annotated[Optional[list[PlaybookType]], "Playbook type filter"] = None,
-    source_worksheet: Annotated[Optional[str], "Source worksheet filter"] = None,
-    source_rowid: Annotated[Optional[str], "Source row ID filter"] = None,
-    limit: Annotated[int, "Max playbooks to return"] = 10
+        playbook_id: Annotated[str, "Playbook ID, e.g. playbook_000001"],
+        job_status: Annotated[Optional[list[PlaybookJobStatus]], "Playbook job status filter"] = None,
+        type: Annotated[Optional[list[PlaybookType]], "Playbook type filter"] = None,
+        source_id: Annotated[Optional[str], "Playbook source record ID filter  e.g. case_00000_1,alert_000001,artifact_000001"] = None,
+        source_rowid: Annotated[Optional[str], "Source row ID filter"] = None,
+        limit: Annotated[int, "Max playbooks to return"] = 10
 ) -> Annotated[list[str], "Matching playbooks as AI-friendly JSON list"]:
     """List playbook runs with optional filters."""
     conditions = []
 
+    if playbook_id:
+        conditions.append(Condition(field="id", operator=Operator.EQ, value=playbook_id))
+    if source_id:
+        conditions.append(Condition(field="source_id", operator=Operator.EQ, value=source_id))
     if job_status:
         conditions.append(Condition(field="job_status", operator=Operator.IN, value=job_status))
     if type:
         conditions.append(Condition(field="type", operator=Operator.IN, value=type))
-    if source_worksheet:
-        conditions.append(Condition(field="source_worksheet", operator=Operator.EQ, value=source_worksheet))
     if source_rowid:
         conditions.append(Condition(field="source_rowid", operator=Operator.EQ, value=source_rowid))
 
@@ -378,29 +368,14 @@ def list_playbooks(
     return result
 
 
-def query_playbook_runs_by_case(
-    case_id: Annotated[str, "Case ID, e.g. case_000005"],
-    job_status: Annotated[Optional[list[PlaybookJobStatus]], "Optional playbook job status filter"] = None,
-    limit: Annotated[int, "Max playbook runs to return"] = 10
-) -> Annotated[Optional[list[str]], "Matching playbook runs as AI-friendly JSON list, or None if case not found"]:
-    """Query playbook runs triggered by a case."""
-    models = Playbook.list_by_case_id(case_id=case_id, job_status=job_status)
-    if models is None:
-        return None
-    result = []
-    for model in models[:limit]:
-        result.append(model.model_dump_json_for_ai())
-    return result
-
-
 def list_knowledge(
-    action: Annotated[Optional[list[KnowledgeAction]], "Knowledge action filter"] = None,
-    source: Annotated[Optional[list[KnowledgeSource]], "Knowledge source filter"] = None,
-    using: Annotated[Optional[bool], "Knowledge using flag filter"] = None,
-    title: Annotated[Optional[str], "Fuzzy knowledge title filter"] = None,
-    body: Annotated[Optional[str], "Fuzzy knowledge body filter"] = None,
-    tags: Annotated[Optional[list[str]], "Knowledge tag filter"] = None,
-    limit: Annotated[int, "Max knowledge records to return"] = 10
+        action: Annotated[Optional[list[KnowledgeAction]], "Knowledge action filter"] = None,
+        source: Annotated[Optional[list[KnowledgeSource]], "Knowledge source filter"] = None,
+        using: Annotated[Optional[bool], "Knowledge using flag filter"] = None,
+        title: Annotated[Optional[str], "Fuzzy knowledge title filter"] = None,
+        body: Annotated[Optional[str], "Fuzzy knowledge body filter"] = None,
+        tags: Annotated[Optional[list[str]], "Knowledge tag filter"] = None,
+        limit: Annotated[int, "Max knowledge records to return"] = 10
 ) -> Annotated[list[str], "Matching knowledge records as AI-friendly JSON list"]:
     """List knowledge records with optional filters."""
     conditions = []
@@ -428,13 +403,13 @@ def list_knowledge(
 
 
 def update_knowledge(
-    knowledge_id: Annotated[str, "Knowledge ID to update"],
-    title: Annotated[Optional[str], "Updated knowledge title"] = None,
-    body: Annotated[Optional[str], "Updated knowledge body"] = None,
-    using: Annotated[Optional[bool], "Updated knowledge using flag"] = None,
-    action: Annotated[Optional[KnowledgeAction], "Updated knowledge action"] = None,
-    source: Annotated[Optional[KnowledgeSource], "Updated knowledge source"] = None,
-    tags: Annotated[Optional[list[str]], "Updated knowledge tags; pass [] to clear"] = None
+        knowledge_id: Annotated[str, "Knowledge ID to update"],
+        title: Annotated[Optional[str], "Updated knowledge title"] = None,
+        body: Annotated[Optional[str], "Updated knowledge body"] = None,
+        using: Annotated[Optional[bool], "Updated knowledge using flag"] = None,
+        action: Annotated[Optional[KnowledgeAction], "Updated knowledge action"] = None,
+        source: Annotated[Optional[KnowledgeSource], "Updated knowledge source"] = None,
+        tags: Annotated[Optional[list[str]], "Updated knowledge tags; pass [] to clear"] = None
 ) -> Annotated[Optional[str], "Updated knowledge row ID, or None if not found"]:
     """Update one knowledge record in SIRP."""
     return Knowledge.update_entry(
@@ -449,11 +424,11 @@ def update_knowledge(
 
 
 def siem_keyword_search(
-    keyword: Annotated[str | list[str], "Keyword or keyword list; list uses AND matching"],
-    time_range_start: Annotated[str, "UTC start time in ISO8601, e.g. 2026-02-04T06:00:00Z"],
-    time_range_end: Annotated[str, "UTC end time in ISO8601, e.g. 2026-02-04T07:00:00Z"],
-    time_field: Annotated[str, "Time field used for range filtering"] = "@timestamp",
-    index_name: Annotated[Optional[str], "Target SIEM index or source; None means all"] = None
+        keyword: Annotated[str | list[str], "Keyword or keyword list; list uses AND matching"],
+        time_range_start: Annotated[str, "UTC start time in ISO8601, e.g. 2026-02-04T06:00:00Z"],
+        time_range_end: Annotated[str, "UTC end time in ISO8601, e.g. 2026-02-04T07:00:00Z"],
+        time_field: Annotated[str, "Time field used for range filtering"] = "@timestamp",
+        index_name: Annotated[Optional[str], "Target SIEM index or source; None means all"] = None
 ) -> Annotated[list[str], "Search hits as JSON strings"]:
     """Search SIEM events by keyword and time range."""
     input_data = KeywordSearchInput(
@@ -468,12 +443,12 @@ def siem_keyword_search(
 
 
 def siem_adaptive_query(
-    index_name: Annotated[str, "Target SIEM index or source name"],
-    time_range_start: Annotated[str, "UTC start time in ISO8601, e.g. 2026-02-04T06:00:00Z"],
-    time_range_end: Annotated[str, "UTC end time in ISO8601, e.g. 2026-02-04T07:00:00Z"],
-    time_field: Annotated[str, "Time field used for range filtering"] = "@timestamp",
-    filters: Annotated[Optional[dict[str, str | list[str]]], "Exact-match filters; values can be a string or string list"] = None,
-    aggregation_fields: Annotated[Optional[list[str]], "Fields used for top-N statistics; omit to use defaults"] = None
+        index_name: Annotated[str, "Target SIEM index or source name"],
+        time_range_start: Annotated[str, "UTC start time in ISO8601, e.g. 2026-02-04T06:00:00Z"],
+        time_range_end: Annotated[str, "UTC end time in ISO8601, e.g. 2026-02-04T07:00:00Z"],
+        time_field: Annotated[str, "Time field used for range filtering"] = "@timestamp",
+        filters: Annotated[Optional[dict[str, str | list[str]]], "Exact-match filters; values can be a string or string list"] = None,
+        aggregation_fields: Annotated[Optional[list[str]], "Fields used for top-N statistics; omit to use defaults"] = None
 ) -> Annotated[str, "Adaptive query result as JSON string"]:
     """Query SIEM data with exact-match filters and optional aggregations."""
     input_data = AdaptiveQueryInput(
@@ -489,7 +464,7 @@ def siem_adaptive_query(
 
 
 def siem_explore_schema(
-    target_index: Annotated[Optional[str], "Target SIEM index; omit to list all available indices"] = None
+        target_index: Annotated[Optional[str], "Target SIEM index; omit to list all available indices"] = None
 ) -> Annotated[str, "Schema exploration result as JSON string"]:
     """Explore available SIEM indices or inspect one index schema."""
     input_data = SchemaExplorerInput(target_index=target_index)
