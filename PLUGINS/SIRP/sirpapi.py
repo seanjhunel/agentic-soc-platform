@@ -560,7 +560,7 @@ class Knowledge(BaseWorksheetEntity[KnowledgeModel]):
             return None
 
     @classmethod
-    def list_undone_actions(cls) -> List[KnowledgeModel]:
+    def list_undone_action_records(cls) -> List[KnowledgeModel]:
         """获取未完成的actions"""
         filter_model = Group(
             logic="AND",

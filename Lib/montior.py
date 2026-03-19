@@ -148,7 +148,7 @@ class MainMonitor(object):
 
     @staticmethod
     def subscribe_knowledge_action():
-        models = Knowledge.list_undone_actions()
+        models = Knowledge.list_undone_action_records()
         if models:
             for model in models:
                 payload_content = f"# {model.title}\n\n{model.body}"
