@@ -424,6 +424,14 @@ def update_knowledge(
     )
 
 
+def search_knowledge(
+        query: Annotated[str, "Question need to search in knowledge base"],
+):
+    """Search knowledge base with a natural language query."""
+    results = Knowledge.search(query)
+    return results
+
+
 def siem_explore_schema(
         target_index: Annotated[Optional[str], "Target SIEM index; omit to list all available indices"] = None
 ) -> Annotated[str, "Schema exploration result as JSON string"]:
@@ -502,6 +510,7 @@ REGISTERED_MCP_TOOLS = [
     update_alert,
     update_case,
     update_knowledge,
+    search_knowledge,
     update_ticket,
     siem_adaptive_query,
     siem_explore_schema,
