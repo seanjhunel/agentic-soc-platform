@@ -36,7 +36,8 @@ Use this skill for external ticket sync work on ASP.
 ## Decision Flow
 
 1. If the user wants to create a synced ticket record, call `create_ticket`.
-2. If the user wants to attach a ticket to a case, first create the ticket when needed or retrieve an existing ticket row ID, then call `attach_ticket_to_case`.
+2. If the user wants to attach a ticket to a case, first create the ticket when needed or retrieve an existing ticket
+   row ID, then call `attach_ticket_to_case`.
 3. If the user wants to browse or compare synced tickets, call `list_tickets`.
 4. If the user wants to revise synced ticket fields, call `update_ticket`.
 
@@ -47,7 +48,8 @@ Use this skill for external ticket sync work on ASP.
 1. Extract the narrowest useful filters from the request.
 2. Call `list_tickets`.
 3. Parse the returned JSON strings.
-4. Present a compact workflow-oriented view, and surface the ticket row ID when the user is likely to attach or reuse the ticket next.
+4. Present a compact workflow-oriented view, and surface the ticket row ID when the user is likely to attach or reuse
+   the ticket next.
 
 Preferred response structure:
 
@@ -66,7 +68,8 @@ Then add one short interpretation line when useful.
 ### Attach Ticket To Case
 
 1. Require `case_id`.
-2. If the user does not already have a ticket row ID, either call `create_ticket` for a new ticket or retrieve the existing ticket first.
+2. If the user does not already have a ticket row ID, either call `create_ticket` for a new ticket or retrieve the
+   existing ticket first.
 3. Call `attach_ticket_to_case(case_id=<case_id>, ticket_rowid=<ticket_rowid>)`.
 4. Confirm that the ticket is attached.
 
@@ -88,7 +91,8 @@ Preferred response structure:
 
 - Ask for `case_id` only when the user wants case attachment and did not provide it.
 - Ask for `ticket_id` only when the user wants to update a specific synced ticket and did not provide it.
-- If the user wants to create a ticket and attach it in one request, do both steps without forcing them to separate the workflow.
+- If the user wants to create a ticket and attach it in one request, do both steps without forcing them to separate the
+  workflow.
 
 ## Output Rules
 

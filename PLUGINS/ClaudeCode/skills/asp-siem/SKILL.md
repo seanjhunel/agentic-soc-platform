@@ -33,14 +33,17 @@ Use this skill for SIEM investigation on ASP. This skill should guide search str
 - Use `siem_explore_schema` when the user does not know the right index or fields.
 - Use `siem_keyword_search` when the user has one or more strong keywords and needs matching events.
 - Use `siem_adaptive_query` when the user already knows the target index and wants exact field filters or statistics.
-- If the user gives a relative time window, call `get_current_time` first and derive a workable UTC range from the returned local time with timezone.
+- If the user gives a relative time window, call `get_current_time` first and derive a workable UTC range from the
+  returned local time with timezone.
 - Optimize for useful evidence, not maximum raw output.
 
 ## Decision Flow
 
-1. If the user asks which index to use, which fields exist, or how the SIEM source is structured, use `siem_explore_schema`.
+1. If the user asks which index to use, which fields exist, or how the SIEM source is structured, use
+   `siem_explore_schema`.
 2. If the user already provides keyword and time range, use `siem_keyword_search` immediately.
-3. If the user gives a relative time window, call `get_current_time`, derive a workable UTC range from the returned local time with timezone, then continue.
+3. If the user gives a relative time window, call `get_current_time`, derive a workable UTC range from the returned
+   local time with timezone, then continue.
 4. If the user gives only an IOC or keyword, ask for the narrowest workable UTC time range.
 5. If the user wants exact field filters, grouped statistics, or controlled aggregations, use `siem_adaptive_query`.
 6. If the user knows the data source, pass `index_name`; otherwise search broadly first or explore schema.
@@ -100,7 +103,8 @@ Stop refining when one of these is true:
 - The user asked only for scope, trend, or prevalence.
 - Further refinement would likely remove relevant evidence.
 - Repeated refinement still returns no useful data.
-- The user already has the right index and exact field constraints, in which case the next step is an adaptive query rather than another keyword search.
+- The user already has the right index and exact field constraints, in which case the next step is an adaptive query
+  rather than another keyword search.
 
 ## Response Strategy
 
@@ -144,9 +148,11 @@ Preferred response structure:
 
 - Ask for time range if missing.
 - Ask for timezone only if the user did not provide UTC and the intended timezone is unclear.
-- Ask for `index_name` only when broad search is likely wasteful, the user already hints at a known source, or adaptive query is the right tool.
+- Ask for `index_name` only when broad search is likely wasteful, the user already hints at a known source, or adaptive
+  query is the right tool.
 - Ask for exact field names only when the user wants adaptive query and the schema is still unclear.
-- If the user says "look around this event", derive a reasonable first search from the available IOC and timeframe rather than asking them to design the query.
+- If the user says "look around this event", derive a reasonable first search from the available IOC and timeframe
+  rather than asking them to design the query.
 
 ## Output Rules
 

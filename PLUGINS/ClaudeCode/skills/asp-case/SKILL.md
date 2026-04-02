@@ -14,7 +14,7 @@ metadata:
 
 # ASP Case
 
-Use this skill for case-centric SOC work on ASP. 
+Use this skill for case-centric SOC work on ASP.
 
 ## When to Use
 
@@ -31,28 +31,36 @@ Use this skill for case-centric SOC work on ASP.
 
 - Do not start by asking which operation they want if the request already implies it.
 - Collect only missing required inputs.
-- Prefer one MCP call when the user request is specific enough, but use a short multi-step flow when the user asks for a real case review.
+- Prefer one MCP call when the user request is specific enough, but use a short multi-step flow when the user asks for a
+  real case review.
 - Do not repeat MCP field descriptions back to the user unless needed to clarify an enum or missing input.
 - Summarize case data for actionability, not as raw schema output.
 - If an update request is ambiguous, ask a targeted clarification before writing.
 - After updates, confirm only the fields that were changed.
-- For single-case retrieval, use `list_cases(case_id=...)` because the current MCP surface does not expose a separate `get_case` tool.
-- Keep case as the primary user view. Pull alerts, discussions, or playbook runs only when they help answer the case question.
+- For single-case retrieval, use `list_cases(case_id=...)` because the current MCP surface does not expose a separate
+  `get_case` tool.
+- Keep case as the primary user view. Pull alerts, discussions, or playbook runs only when they help answer the case
+  question.
 - If the user wants to save structured analysis back onto the case, use the `asp-enrichment` skill.
 
 ## Decision Flow
 
-1. If the user provides a specific case ID or says "open", "show", "review", or "summarize" a case, call `list_cases` with `case_id` and `limit=1`.
+1. If the user provides a specific case ID or says "open", "show", "review", or "summarize" a case, call `list_cases`
+   with `case_id` and `limit=1`.
 2. If the user wants discussion history or analyst context, call `get_case_discussions` after retrieving the case.
-3. If the user wants related alert context, pivot through the case's `correlation_uid` and call `list_alerts` when that helps answer the case question.
+3. If the user wants related alert context, pivot through the case's `correlation_uid` and call `list_alerts` when that
+   helps answer the case question.
 4. If the user wants case automation status, call `list_playbook_runs(source_id=case_id, type=[CASE])`.
-5. If the user wants to run automation on the case, use `list_available_playbook_definitions` only when the playbook name is missing, then call `execute_playbook(type=CASE, record_id=case_id, name=...)`.
+5. If the user wants to run automation on the case, use `list_available_playbook_definitions` only when the playbook
+   name is missing, then call `execute_playbook(type=CASE, record_id=case_id, name=...)`.
 6. If the user asks to attach enrichment or structured analysis to the case, use the `asp-enrichment` skill.
-7. If the user asks to attach an external ticket to the case, first call `create_ticket`, then call `attach_ticket_to_case(case_id=<case_id>, ticket_rowid=<created_rowid>)`.
+7. If the user asks to attach an external ticket to the case, first call `create_ticket`, then call
+   `attach_ticket_to_case(case_id=<case_id>, ticket_rowid=<created_rowid>)`.
 8. If the user asks to find, browse, or compare cases, use `list_cases`.
 9. If the user asks to change status, verdict, severity, or AI fields, use `update_case`.
 10. If the user asks to update a case but does not provide a case ID, ask for it.
-11. If the user gives multiple possible filters, apply the ones ASP supports directly and mention any unsupported filters explicitly.
+11. If the user gives multiple possible filters, apply the ones ASP supports directly and mention any unsupported
+    filters explicitly.
 
 ## SOP
 
@@ -62,7 +70,8 @@ Use this skill for case-centric SOC work on ASP.
 2. If the result is empty, state that the case was not found.
 3. Parse the first JSON record.
 4. If the user asks for analyst context, call `get_case_discussions(case_id)`.
-5. If the case contains a useful `correlation_uid` and the user needs related alert context, use it as a pivot and call `list_alerts(correlation_uid=...)`.
+5. If the case contains a useful `correlation_uid` and the user needs related alert context, use it as a pivot and call
+   `list_alerts(correlation_uid=...)`.
 6. If the user asks whether automation has run or is pending, call `list_playbook_runs(source_id=case_id, type=[CASE])`.
 7. Present only the most useful sections for the request.
 8. Highlight missing or suspicious fields only if they matter to the user's goal.
@@ -76,11 +85,13 @@ Preferred response structure:
 - `Playbook Runs`: only current or recent runs when relevant.
 - `Analyst / AI Notes`: comment, summary, AI fields when relevant.
 
-Use concise incident-review language. Prefer a short analytical summary before structured details when the user asks for "what happened" or "help me understand this case".
+Use concise incident-review language. Prefer a short analytical summary before structured details when the user asks
+for "what happened" or "help me understand this case".
 
 ### List Cases
 
-1. Extract supported filters: `case_id`, `status`, `severity`, `confidence`, `verdict`, `correlation_uid`, `title`, `tags`, `limit`.
+1. Extract supported filters: `case_id`, `status`, `severity`, `confidence`, `verdict`, `correlation_uid`, `title`,
+   `tags`, `limit`.
 2. If the user gives comma-separated or natural-language lists, normalize them before calling MCP.
 3. Call `list_cases`.
 4. Parse the returned JSON strings.
@@ -101,7 +112,8 @@ Then add one short line of interpretation when useful, for example:
 ### Run A Case Playbook
 
 1. Require `case_id`.
-2. If the user has not named a playbook definition, call `list_available_playbook_definitions` and suggest the most relevant options instead of guessing.
+2. If the user has not named a playbook definition, call `list_available_playbook_definitions` and suggest the most
+   relevant options instead of guessing.
 3. Call `execute_playbook(type=CASE, record_id=case_id, name=<definition_name>, user_input=<optional>)`.
 4. Confirm that a pending playbook run record was created.
 5. If the user wants follow-up status, call `list_playbook_runs(source_id=case_id, type=[CASE])`.
@@ -160,9 +172,12 @@ Preferred response structure:
 
 - Ask for `case_id` only when missing.
 - Ask for enum clarification only when the requested value does not map cleanly to ASP values.
-- If the user asks for "close", "resolve", or "mark suspicious", you may map directly to the corresponding status or verdict when the intent is unambiguous.
-- If the user asks for case automation but does not provide a playbook definition name, show available definitions instead of inventing one.
-- If the user asks for a broad review like "show recent important cases", start with `list_cases` instead of forcing them to choose an operation.
+- If the user asks for "close", "resolve", or "mark suspicious", you may map directly to the corresponding status or
+  verdict when the intent is unambiguous.
+- If the user asks for case automation but does not provide a playbook definition name, show available definitions
+  instead of inventing one.
+- If the user asks for a broad review like "show recent important cases", start with `list_cases` instead of forcing
+  them to choose an operation.
 
 ## Output Rules
 
@@ -170,12 +185,14 @@ Preferred response structure:
 - Do not dump raw JSON unless the user explicitly asks for it.
 - Prefer analyst-facing wording over schema wording.
 - Keep tables small; when many rows match, show the best subset and state the total count.
-- When using multiple MCP calls for one review, merge the result into one coherent case narrative instead of showing call-by-call output.
+- When using multiple MCP calls for one review, merge the result into one coherent case narrative instead of showing
+  call-by-call output.
 - Surface blockers clearly: case not found, unsupported filter, invalid enum value.
 
 ## Failure Handling
 
 - If the case is missing, say so directly.
 - If filters return no results, state that and suggest the most likely useful refinement.
-- If the playbook definition name does not match available definitions, say that directly and offer the closest available options.
+- If the playbook definition name does not match available definitions, say that directly and offer the closest
+  available options.
 - If an update target is unclear, ask one focused question instead of guessing.

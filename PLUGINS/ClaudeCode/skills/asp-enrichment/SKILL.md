@@ -47,7 +47,8 @@ Use this skill when analysis results should be saved back into ASP as structured
 1. Require `target_type` and `target_id`.
 2. Convert the user's analysis into a compact structured enrichment payload.
 3. Call `create_enrichment` and keep the returned enrichment row ID.
-4. Call `attach_enrichment_to_target(target_type=<target_type>, target_id=<target_id>, enrichment_rowid=<created_rowid>)`.
+4. Call
+   `attach_enrichment_to_target(target_type=<target_type>, target_id=<target_id>, enrichment_rowid=<created_rowid>)`.
 5. Confirm that the enrichment was created and attached.
 
 Preferred response structure:
@@ -60,15 +61,18 @@ Preferred response structure:
 ### Attach Existing Enrichment
 
 1. Require `target_type`, `target_id`, and `enrichment_rowid`.
-2. Call `attach_enrichment_to_target(target_type=<target_type>, target_id=<target_id>, enrichment_rowid=<enrichment_rowid>)`.
+2. Call
+   `attach_enrichment_to_target(target_type=<target_type>, target_id=<target_id>, enrichment_rowid=<enrichment_rowid>)`.
 3. Confirm that the enrichment was attached.
 
 ## Clarification Rules
 
 - Ask for `target_type` and `target_id` only when missing.
 - Ask for the enrichment row ID only when the user wants to reuse an existing enrichment and did not provide it.
-- If the user only says "save this result", infer the most obvious target object from the current request when it is clear.
-- If the user wants a note rather than a structured result, still prefer enrichment when the content is investigative context.
+- If the user only says "save this result", infer the most obvious target object from the current request when it is
+  clear.
+- If the user wants a note rather than a structured result, still prefer enrichment when the content is investigative
+  context.
 
 ## Output Rules
 

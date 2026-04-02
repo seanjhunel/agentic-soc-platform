@@ -30,14 +30,17 @@ Use this skill for internal knowledge retrieval and maintenance on ASP.
 - Use fuzzy title or body matching when the user gives phrases, symptoms, or partial wording.
 - Use tags when the user is operating by scenario, technique, or topic.
 - For updates, modify only the fields the user explicitly wants changed.
-- If the user needs semantic search rather than field-based filtering, say that the current MCP surface is still filter-oriented.
+- If the user needs semantic search rather than field-based filtering, say that the current MCP surface is still
+  filter-oriented.
 
 ## Decision Flow
 
 1. If the user wants to find or browse knowledge, call `list_knowledge` with the narrowest useful filters.
 2. If the user asks to revise content, status, source, action, or tags for a known record, call `update_knowledge`.
-3. If the user asks whether some knowledge already exists but gives only partial wording, start with fuzzy `title` and `body` filters.
-4. If the user asks to manage lifecycle or storage state, use `action` and `using` rather than inventing a separate workflow.
+3. If the user asks whether some knowledge already exists but gives only partial wording, start with fuzzy `title` and
+   `body` filters.
+4. If the user asks to manage lifecycle or storage state, use `action` and `using` rather than inventing a separate
+   workflow.
 
 ## SOP
 
@@ -69,13 +72,15 @@ Preferred response structure:
 
 - `Updated knowledge`: knowledge ID or returned row ID
 - `Changed fields`: only the fields sent in the request
-- `Next useful step`: optional, usually to query similar knowledge or verify the updated record through a narrowed search
+- `Next useful step`: optional, usually to query similar knowledge or verify the updated record through a narrowed
+  search
 
 ## Clarification Rules
 
 - Ask for `knowledge_id` only when the user wants to update a specific record and did not provide it.
 - Ask for lifecycle clarification only when the requested state does not map cleanly to `action` or `using`.
-- If the user asks to "disable", "archive", or "stop using" a knowledge record, prefer clarifying whether they mean `using=false`, a lifecycle `action`, or both.
+- If the user asks to "disable", "archive", or "stop using" a knowledge record, prefer clarifying whether they mean
+  `using=false`, a lifecycle `action`, or both.
 
 ## Output Rules
 

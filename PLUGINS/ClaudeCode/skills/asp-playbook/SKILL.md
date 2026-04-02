@@ -30,14 +30,17 @@ Use this skill for playbook automation work on ASP.
 - Use `list_playbook_runs` only for run records.
 - Use `execute_playbook` only when the user has named a runnable definition and identified the target object.
 - Do not invent a playbook definition name. If missing, list or suggest from available definitions first.
-- Treat `user_input` as optional, per-run natural-language guidance for the selected playbook, not as a generic chat prompt.
+- Treat `user_input` as optional, per-run natural-language guidance for the selected playbook, not as a generic chat
+  prompt.
 
 ## Decision Flow
 
 1. If the user asks what can run, call `list_available_playbook_definitions`.
-2. If the user asks whether automation has run for a case, alert, or artifact, call `list_playbook_runs(source_id=<target_id>, type=[<target_type>])`.
+2. If the user asks whether automation has run for a case, alert, or artifact, call
+   `list_playbook_runs(source_id=<target_id>, type=[<target_type>])`.
 3. If the user asks to run automation and already provides definition name plus target object, call `execute_playbook`.
-4. If the user asks to run automation but does not know the playbook definition name, call `list_available_playbook_definitions` first.
+4. If the user asks to run automation but does not know the playbook definition name, call
+   `list_available_playbook_definitions` first.
 5. If the user asks for general automation history, call `list_playbook_runs` with the narrowest useful filters.
 
 ## SOP
@@ -90,7 +93,8 @@ Then add one short interpretation line when useful.
 - Ask for `target_type` and `target_id` only when missing for run requests.
 - Ask for the playbook definition name only when missing or ambiguous.
 - If the user names something that sounds like a run ID instead of a definition, clarify before executing.
-- If the user asks to "check the run" without a run ID, prefer `list_playbook_runs` with object context instead of guessing a specific run.
+- If the user asks to "check the run" without a run ID, prefer `list_playbook_runs` with object context instead of
+  guessing a specific run.
 
 ## Output Rules
 
