@@ -15,7 +15,7 @@ metadata:
 # ASP Artifact
 
 当用户要围绕 artifact 进行调查分析时，使用这个 skill。
-artifact 是 ASP 中的三级数据,每个 artifact 都挂载在一个 alert 下,是最小的需要调查的数据单元。
+artifact 由系统自动创建，用户只能查询和分析已有 artifact，并通过 enrichment 保存分析结果。
 
 ## 适用场景
 

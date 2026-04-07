@@ -48,6 +48,8 @@ ASP internal Knowledge is stored as individual database records. The main fields
 - When the user says to "add to the knowledge base" or "make it retrievable", interpret that as setting `action` to `Store`, not editing `using` directly.
 - When the user says to "remove from the knowledge base" or "stop using it for retrieval", interpret that as setting `action` to `Remove`.
 
+Note: `action=Store` and `action=Remove` are handled asynchronously by the backend, so the retrievability state may lag behind the update.
+
 ## Decision Flow
 
 1. If the user wants to search vectorized knowledge content for relevant conclusions, experience, or historical knowledge, use `search_knowledge`.

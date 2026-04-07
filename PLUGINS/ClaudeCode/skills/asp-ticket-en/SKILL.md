@@ -95,6 +95,8 @@ Preferred response structure:
 - Prefer workflow wording over storage wording.
 - When many tickets match, show the best subset and explain the pattern briefly.
 
+Tip: there is no direct `case_id` filter for `list_tickets`; use `list_cases(case_id=..., lazy_load=false)` to inspect attached tickets when needed.
+
 ## Failure Handling
 
 - If no tickets match, say that directly and suggest the most useful refinement.

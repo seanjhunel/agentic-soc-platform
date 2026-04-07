@@ -31,6 +31,8 @@ An alert is secondary data in ASP. Each alert belongs to a case, and each alert 
 - If the user is working on a specific alert, prefer `list_alerts(alert_id=<id>, limit=1)` because the current MCP surface does not expose a separate `get_alert` tool.
 - If the user wants to save structured analysis back onto the alert, use the `asp-enrichment-en` skill.
 
+Note: alerts only support `severity_ai`, `confidence_ai`, and `comment_ai` updates; verdict and summary fields belong to case updates.
+
 ## Additional Information
 
 - `rowid` is the UUID for each alert record and is used for data association.

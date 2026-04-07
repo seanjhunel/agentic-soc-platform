@@ -15,7 +15,7 @@ metadata:
 # ASP Artifact
 
 Use this skill when the user needs to investigate artifacts on ASP.
-An artifact is the third-level data in ASP. Each artifact is attached under one alert and is the smallest data unit that still needs investigation.
+Artifacts are created automatically by system processes. You can list and analyze existing artifacts, and save analysis back through enrichment.
 
 ## When to Use
 
