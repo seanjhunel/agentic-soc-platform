@@ -26,8 +26,6 @@ metadata:
 ## 运行规则
 
 - 把 ticket 视为已同步的外部工作流记录，而不是平台的主要调查对象。
-- 如果用户请求已经隐含操作，不要反问用户要哪种操作。
-- 只收集缺失的必要输入。
 - 使用 `create_ticket` 创建已同步 ticket 记录。
 - 使用 `attach_ticket_to_case` 把已有 ticket 记录关联到 case，前提是已经拿到 ticket rowid。
 - 使用 `list_tickets` 浏览和查询。
@@ -82,7 +80,6 @@ metadata:
 
 - `Updated ticket`：ticket ID 或返回的 rowid
 - `Changed fields`：只列本次请求实际提交的字段
-- `Next useful step`：可选，通常是附加到 case 或查看刷新后的 ticket
 
 ## 澄清规则
 
